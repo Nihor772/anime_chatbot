@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Chatbot</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #1f1c2c, #928dab);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .app {
+      width: 100%;
+      max-width: 900px;
+      background: #2c2c38;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    header { text-align: center; }
+    .characters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+    }
+    .character {
+      background: #3c3c4a;
+      padding: 10px;
+      border-radius: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .character:hover { transform: scale(1.05); }
+    .character img { 
+      width: 100px;  
+      height: 100px; 
+      object-fit: cover; 
+      border-radius: 10px;
+      margin-bottom: 8px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 500px;
+    }
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      background: #1e1e28;
+      border-radius: 15px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .message {
+      padding: 12px;
+      border-radius: 12px;
+      max-width: 70%;
+      white-space: pre-wrap;
+    }
+    .user { background: #4e89ff; align-self: flex-end; }
+    .bot { background: #444; align-self: flex-start; }
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+    }
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 12px;
+      background: #ff6b6b;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover { background: #ff4757; }
+    @media (max-width: 600px) {
+      .characters { grid-template-columns: repeat(2, 1fr); }
+      .chat-container { height: 400px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Anime Chatbot</h1>
+      <p>Choose your character and start chatting!</p>
+    </header>
+
+    <!-- Character Selection -->
+    <section class="characters">
+      <div class="character" data-character="naruto">
+        <img src="res/naruto.png" alt="Naruto">
+        <p>Naruto</p>
+      </div>
+      <div class="character" data-character="luffy">
+        <img src="res/luffy_pic.jpg" alt="Luffy">
+        <p>Luffy</p>
+      </div>
+      <div class="character" data-character="sukuna">
+        <img src="res/sukuna.webp" alt="Sukuna">
+        <p>Sukuna</p>
+      </div>
+      <div class="character" data-character="dio">
+        <img src="res/dio.jpg" alt="Dio">
+        <p>Dio</p>
+      </div>
+      <div class="character" data-character="tanjiro">
+        <img src="res/tanjiro.jpeg" alt="Tanjiro">
+        <p>Tanjiro</p>
+      </div>
+      <div class="character" data-character="blackbeard">
+        <img src="res/blackbeard.jpg" alt="Blackbeard">
+        <p>Blackbeard</p>
+      </div>
+    </section>
+
+    <!-- Chat Section -->
+    <section class="chat-container">
+      <div class="chat-box" id="chat-box"></div>
+      <div class="input-area">
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button id="send-btn">Send</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    let selectedCharacter = null;
+
+    document.querySelectorAll(".character").forEach(char => {
+      char.addEventListener("click", () => {
+        selectedCharacter = char.dataset.character;
+        chatBox.innerHTML = `<div class="message bot">You are now chatting with <b>${selectedCharacter.toUpperCase()}</b>!</div>`;
+      });
+    });
+
+    sendBtn.addEventListener("click", () => sendMessage());
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text || !selectedCharacter) return;
+
+      addMessage(text, "user");
+      userInput.value = "";
+
+      try {
+        const response = await fetch("http://localhost:3000/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            character: selectedCharacter,
+            message: text
+          })
+        });
+
+        const data = await response.json();
+
+        // ✅ FIX: match your backend response format
+        const reply = data.reply || "⚠️ Error: No response from server.";
+        addMessage(reply, "bot");
+      } catch (error) {
+        addMessage("⚠️ API error. Make sure server.js is running.", "bot");
+        console.error(error);
+      }
+    }
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      msg.innerText = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
