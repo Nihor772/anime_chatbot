@@ -155,6 +155,9 @@
 
     let selectedCharacter = null;
 
+    // ✅ Replace with your actual backend URL from Vercel
+    const API_URL = "https://your-backend.vercel.app/chat";
+
     document.querySelectorAll(".character").forEach(char => {
       char.addEventListener("click", () => {
         selectedCharacter = char.dataset.character;
@@ -175,8 +178,7 @@
       userInput.value = "";
 
       try {
-        // ✅ Change localhost → relative API route
-        const response = await fetch("/api/chat", {
+        const response = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -189,7 +191,7 @@
         const reply = data.reply || "⚠️ Error: No response from server.";
         addMessage(reply, "bot");
       } catch (error) {
-        addMessage("⚠️ API error. Check backend logs.", "bot");
+        addMessage("⚠️ API error. Make sure backend is deployed correctly.", "bot");
         console.error(error);
       }
     }
