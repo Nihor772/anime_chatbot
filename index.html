@@ -149,59 +149,60 @@
   </div>
 
   <script>
-    const chatBox = document.getElementById("chat-box");
-    const userInput = document.getElementById("user-input");
-    const sendBtn = document.getElementById("send-btn");
+  const chatBox = document.getElementById("chat-box");
+  const userInput = document.getElementById("user-input");
+  const sendBtn = document.getElementById("send-btn");
 
-    let selectedCharacter = null;
+  let selectedCharacter = null;
 
-    // ✅ Replace with your actual backend URL from Vercel
-    const API_URL = "/api/chat";
-    document.querySelectorAll(".character").forEach(char => {
-      char.addEventListener("click", () => {
-        selectedCharacter = char.dataset.character;
-        chatBox.innerHTML = `<div class="message bot">You are now chatting with <b>${selectedCharacter.toUpperCase()}</b>!</div>`;
+  // ✅ Correct API endpoint
+  const API_URL = "/api/chat";
+
+  document.querySelectorAll(".character").forEach(char => {
+    char.addEventListener("click", () => {
+      selectedCharacter = char.dataset.character;
+      chatBox.innerHTML = `<div class="message bot">You are now chatting with <b>${selectedCharacter.toUpperCase()}</b>!</div>`;
+    });
+  });
+
+  sendBtn.addEventListener("click", () => sendMessage());
+  userInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
+
+  async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text || !selectedCharacter) return;
+
+    addMessage(text, "user");
+    userInput.value = "";
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          character: selectedCharacter,
+          message: text
+        })
       });
-    });
 
-    sendBtn.addEventListener("click", () => sendMessage());
-    userInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
-
-    async function sendMessage() {
-      const text = userInput.value.trim();
-      if (!text || !selectedCharacter) return;
-
-      addMessage(text, "user");
-      userInput.value = "";
-
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            character: selectedCharacter,
-            message: text
-          })
-        });
-
-        const data = await response.json();
-        const reply = data.reply || "⚠️ Error: No response from server.";
-        addMessage(reply, "bot");
-      } catch (error) {
-        addMessage("⚠️ API error. Make sure backend is deployed correctly.", "bot");
-        console.error(error);
-      }
+      const data = await response.json();
+      const reply = data.reply || "⚠️ Error: No response from server.";
+      addMessage(reply, "bot");
+    } catch (error) {
+      addMessage("⚠️ API error. Make sure backend is deployed correctly.", "bot");
+      console.error(error);
     }
+  }
 
-    function addMessage(text, sender) {
-      const msg = document.createElement("div");
-      msg.className = `message ${sender}`;
-      msg.innerText = text;
-      chatBox.appendChild(msg);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-  </script>
+  function addMessage(text, sender) {
+    const msg = document.createElement("div");
+    msg.className = `message ${sender}`;
+    msg.innerText = text;
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+</script>
 </body>
 </html>
