@@ -175,7 +175,8 @@
       userInput.value = "";
 
       try {
-        const response = await fetch("http://localhost:3000/chat", {
+        // ✅ Change localhost → relative API route
+        const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -185,12 +186,10 @@
         });
 
         const data = await response.json();
-
-        // ✅ FIX: match your backend response format
         const reply = data.reply || "⚠️ Error: No response from server.";
         addMessage(reply, "bot");
       } catch (error) {
-        addMessage("⚠️ API error. Make sure server.js is running.", "bot");
+        addMessage("⚠️ API error. Check backend logs.", "bot");
         console.error(error);
       }
     }
