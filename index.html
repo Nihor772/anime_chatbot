@@ -156,8 +156,7 @@
     let selectedCharacter = null;
 
     // ✅ Replace with your actual backend URL from Vercel
-    const API_URL = "https://your-backend.vercel.app/chat";
-
+    const API_URL = "/api/chat";
     document.querySelectorAll(".character").forEach(char => {
       char.addEventListener("click", () => {
         selectedCharacter = char.dataset.character;
